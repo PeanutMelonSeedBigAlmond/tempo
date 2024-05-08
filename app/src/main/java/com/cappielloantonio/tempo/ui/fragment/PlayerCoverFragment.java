@@ -49,9 +49,6 @@ public class PlayerCoverFragment extends Fragment {
 
         playerBottomSheetViewModel = new ViewModelProvider(requireActivity()).get(PlayerBottomSheetViewModel.class);
 
-        initOverlay();
-        initInnerButton();
-
         return view;
     }
 
@@ -60,7 +57,6 @@ public class PlayerCoverFragment extends Fragment {
         super.onStart();
         initializeBrowser();
         bindMediaController();
-        toggleOverlayVisibility(false);
     }
 
     @Override
@@ -73,83 +69,6 @@ public class PlayerCoverFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         bind = null;
-    }
-
-    private void initTapButtonHideTransition() {
-        bind.nowPlayingTapButton.setVisibility(View.VISIBLE);
-
-        handler.removeCallbacksAndMessages(null);
-
-        final Runnable runnable = () -> {
-            if (bind != null) bind.nowPlayingTapButton.setVisibility(View.GONE);
-        };
-
-        handler.postDelayed(runnable, 10000);
-    }
-
-    private void initOverlay() {
-        bind.nowPlayingSongCoverImageView.setOnClickListener(view -> toggleOverlayVisibility(true));
-        bind.nowPlayingSongCoverButtonGroup.setOnClickListener(view -> toggleOverlayVisibility(false));
-        bind.nowPlayingTapButton.setOnClickListener(view -> toggleOverlayVisibility(true));
-    }
-
-    private void toggleOverlayVisibility(boolean isVisible) {
-        Transition transition = new Fade();
-        transition.setDuration(200);
-        transition.addTarget(bind.nowPlayingSongCoverButtonGroup);
-
-        TransitionManager.beginDelayedTransition(bind.getRoot(), transition);
-        bind.nowPlayingSongCoverButtonGroup.setVisibility(isVisible ? View.VISIBLE : View.GONE);
-        bind.nowPlayingTapButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-
-        bind.innerButtonBottomRight.setVisibility(Preferences.isSyncronizationEnabled() ? View.VISIBLE : View.GONE);
-        bind.innerButtonBottomRightAlternative.setVisibility(Preferences.isSyncronizationEnabled() ? View.GONE : View.VISIBLE);
-
-        if (!isVisible) initTapButtonHideTransition();
-    }
-
-    private void initInnerButton() {
-        playerBottomSheetViewModel.getLiveMedia().observe(getViewLifecycleOwner(), song -> {
-            if (song != null && bind != null) {
-                bind.innerButtonTopLeft.setOnClickListener(view -> {
-                    DownloadUtil.getDownloadTracker(requireContext()).download(
-                            MappingUtil.mapDownload(song),
-                            new Download(song)
-                    );
-                });
-
-                bind.innerButtonTopRight.setOnClickListener(view -> {
-                            Bundle bundle = new Bundle();
-                            bundle.putParcelable(Constants.TRACK_OBJECT, song);
-
-                            PlaylistChooserDialog dialog = new PlaylistChooserDialog();
-                            dialog.setArguments(bundle);
-                            dialog.show(requireActivity().getSupportFragmentManager(), null);
-                        }
-                );
-
-                bind.innerButtonBottomLeft.setOnClickListener(view -> {
-                    playerBottomSheetViewModel.getMediaInstantMix(getViewLifecycleOwner(), song).observe(getViewLifecycleOwner(), media -> {
-                        MediaManager.enqueue(mediaBrowserListenableFuture, media, true);
-                    });
-                });
-
-                bind.innerButtonBottomRight.setOnClickListener(view -> {
-                    if (playerBottomSheetViewModel.savePlayQueue()) {
-                        Snackbar.make(requireView(), "Salvato", Snackbar.LENGTH_LONG).show();
-                    }
-                });
-
-                bind.innerButtonBottomRightAlternative.setOnClickListener(view -> {
-                    if (getActivity() != null) {
-                        PlayerBottomSheetFragment playerBottomSheetFragment = (PlayerBottomSheetFragment) requireActivity().getSupportFragmentManager().findFragmentByTag("PlayerBottomSheet");
-                        if (playerBottomSheetFragment != null) {
-                            playerBottomSheetFragment.goToLyricsPage();
-                        }
-                    }
-                });
-            }
-        });
     }
 
     private void initializeBrowser() {
@@ -178,7 +97,6 @@ public class PlayerCoverFragment extends Fragment {
             @Override
             public void onMediaMetadataChanged(@NonNull MediaMetadata mediaMetadata) {
                 setCover(mediaMetadata);
-                toggleOverlayVisibility(false);
             }
         });
     }

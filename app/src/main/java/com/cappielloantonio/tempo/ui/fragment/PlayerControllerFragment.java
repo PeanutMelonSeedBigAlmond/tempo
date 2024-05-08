@@ -11,8 +11,11 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentContainer;
+import androidx.fragment.app.FragmentContainerView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.PlaybackParameters;
@@ -47,6 +50,7 @@ public class PlayerControllerFragment extends Fragment {
     private static final String TAG = "PlayerCoverFragment";
 
     private InnerFragmentPlayerControllerBinding bind;
+    @Nullable
     private ViewPager2 playerMediaCoverViewPager;
     private ToggleButton buttonFavorite;
     private TextView playerMediaTitleLabel;
@@ -249,31 +253,39 @@ public class PlayerControllerFragment extends Fragment {
     }
 
     private void initCoverLyricsSlideView() {
-        playerMediaCoverViewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        playerMediaCoverViewPager.setAdapter(new PlayerControllerHorizontalPager(this));
+        if (playerMediaCoverViewPager!=null){ // 竖屏模式
+            playerMediaCoverViewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+            playerMediaCoverViewPager.setAdapter(new PlayerControllerHorizontalPager(this));
 
-        playerMediaCoverViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
+            playerMediaCoverViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
 
-                PlayerBottomSheetFragment playerBottomSheetFragment = (PlayerBottomSheetFragment) requireActivity().getSupportFragmentManager().findFragmentByTag("PlayerBottomSheet");
+                    PlayerBottomSheetFragment playerBottomSheetFragment = (PlayerBottomSheetFragment) requireActivity().getSupportFragmentManager().findFragmentByTag("PlayerBottomSheet");
 
-                if (position == 0) {
-                    activity.setBottomSheetDraggableState(true);
+                    if (position == 0) {
+                        activity.setBottomSheetDraggableState(true);
 
-                    if (playerBottomSheetFragment != null) {
-                        playerBottomSheetFragment.setPlayerControllerVerticalPagerDraggableState(true);
-                    }
-                } else if (position == 1) {
-                    activity.setBottomSheetDraggableState(false);
+                        if (playerBottomSheetFragment != null) {
+                            playerBottomSheetFragment.setPlayerControllerVerticalPagerDraggableState(true);
+                        }
+                    } else if (position == 1) {
+                        activity.setBottomSheetDraggableState(false);
 
-                    if (playerBottomSheetFragment != null) {
-                        playerBottomSheetFragment.setPlayerControllerVerticalPagerDraggableState(false);
+                        if (playerBottomSheetFragment != null) {
+                            playerBottomSheetFragment.setPlayerControllerVerticalPagerDraggableState(false);
+                        }
                     }
                 }
+            });
+        }else { // 横屏模式
+            activity.setBottomSheetDraggableState(true);
+            PlayerBottomSheetFragment playerBottomSheetFragment = (PlayerBottomSheetFragment) requireActivity().getSupportFragmentManager().findFragmentByTag("PlayerBottomSheet");
+            if (playerBottomSheetFragment!=null){
+                playerBottomSheetFragment.setPlayerControllerVerticalPagerDraggableState(true);
             }
-        });
+        }
     }
 
     private void initMediaListenable() {

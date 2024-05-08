@@ -69,7 +69,6 @@ public class PlayerLyricsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         initializeBrowser();
-
     }
 
     @Override
