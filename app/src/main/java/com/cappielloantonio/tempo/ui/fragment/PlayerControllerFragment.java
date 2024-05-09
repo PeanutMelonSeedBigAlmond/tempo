@@ -361,11 +361,15 @@ public class PlayerControllerFragment extends Fragment {
     }
 
     public void goToControllerPage() {
-        playerMediaCoverViewPager.setCurrentItem(0, false);
+        if (playerMediaCoverViewPager!=null){
+            playerMediaCoverViewPager.setCurrentItem(0, false);
+        }
     }
 
     public void goToLyricsPage() {
-        playerMediaCoverViewPager.setCurrentItem(1, true);
+        if (playerMediaCoverViewPager!=null){
+            playerMediaCoverViewPager.setCurrentItem(1, true);
+        }
     }
 
     private void setPlaybackParameters(MediaBrowser mediaBrowser) {

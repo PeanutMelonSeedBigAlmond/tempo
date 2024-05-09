@@ -2,6 +2,7 @@ package com.cappielloantonio.tempo.viewmodel;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
@@ -35,6 +36,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import moe.peanutmelonseedbigalmond.tempo.ui.widget.data.StructedLrc;
+
 @OptIn(markerClass = UnstableApi.class)
 public class PlayerBottomSheetViewModel extends AndroidViewModel {
     private static final String TAG = "PlayerBottomSheetViewModel";
@@ -50,8 +53,16 @@ public class PlayerBottomSheetViewModel extends AndroidViewModel {
     private final MutableLiveData<Child> liveMedia = new MutableLiveData<>(null);
     private final MutableLiveData<ArtistID3> liveArtist = new MutableLiveData<>(null);
     private final MutableLiveData<List<Child>> instantMix = new MutableLiveData<>(null);
-    private boolean lyricsSyncState = true;
 
+    private List<StructedLrc> structedLrcList=Collections.emptyList();
+
+    public List<StructedLrc> getStructedLrcList() {
+        return structedLrcList;
+    }
+
+    public void setStructedLrcList(List<StructedLrc> structedLrcList) {
+        this.structedLrcList = structedLrcList;
+    }
 
     public PlayerBottomSheetViewModel(@NonNull Application application) {
         super(application);
@@ -136,7 +147,9 @@ public class PlayerBottomSheetViewModel extends AndroidViewModel {
 
     public void refreshMediaInfo(LifecycleOwner owner, Child media) {
         if (OpenSubsonicExtensionsUtil.isSongLyricsExtensionAvailable()) {
-            openRepository.getLyricsBySongId(media.getId()).observe(owner, lyricsListLiveData::postValue);
+            openRepository.getLyricsBySongId(media.getId()).observe(owner, lrc->{
+                lyricsListLiveData.postValue(lrc);
+            });
             lyricsLiveData.postValue(null);
         } else {
             songRepository.getSongLyrics(media).observe(owner, lyricsLiveData::postValue);
@@ -210,13 +223,5 @@ public class PlayerBottomSheetViewModel extends AndroidViewModel {
         }
 
         return false;
-    }
-
-    public void changeSyncLyricsState() {
-        lyricsSyncState = !lyricsSyncState;
-    }
-
-    public boolean getSyncLyricsState() {
-        return lyricsSyncState;
     }
 }
